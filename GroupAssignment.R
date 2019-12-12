@@ -147,3 +147,158 @@ ggplot(ESGDATA_SDG_ASIA_New, aes(x =Gross_SchoolEnrollment,y = Sanitationservice
 
 #t-test&p-value
 summary(model)
+
+#======================================PLOT VISUALIZATION===================
+
+
+#Question No. 1 Goals: Poverty
+view(ESGDATA_SDG_ASIA_New)
+a <- ggplot(subset(ESGDATA_SDG_ASIA_New,  Year > "2005" & Year <= "2017"), aes(x = Agriculture_GDP, y = Poverty_Population)) + geom_point(aes(col=Country),size = 3) +
+  coord_cartesian(xlim = c(0,40) , ylim = c(0,75)) +  facet_wrap(~ Year) + geom_smooth(method = "lm")+
+  labs(title = "Agriculture_GDP Vs Poverty_Population", subtitle = "From ESGData_SDG_ASIA dataset", y="Poverty_Population",x="Agriculture_GDP", caption = "ESG Demographics")
+
+ggplotly(a)
+
+
+#Question No. 2 Environmental
+
+
+b <- ggplot(subset(ESGDATA_SDG_ASIA_New,  Year > "2005" & Year <= "2017"), aes(x = Naturalresources_depletion, y = CO2emissions_capita)) + geom_point(aes(col=Country),size = 3) +
+  coord_cartesian(xlim = c(0,60) , ylim = c(0,70)) +  facet_wrap(~ Year) + 
+  labs(title = "Naturalresources_depletion Vs CO2emissions_capita", subtitle = "From ESGData_SDG_ASIA dataset", y="CO2emissions_capita",x="Naturalresources_depletion", caption = "ESG Demographics")
+
+ggplotly(b)
+
+
+#Question 3 Governace
+
+c <- ggplot(subset(ESGDATA_SDG_ASIA_New,  Year > "2005" & Year <= "2017"), aes(x = Gross_SchoolEnrollment, y = Sanitationservices_Pop)) + geom_point(aes(col=Country),size = 3) +
+  coord_cartesian(xlim = c(0,1.5) , ylim = c(0,100)) +  facet_wrap(~ Year) +
+  labs(title = "Awareness of Sanitation related to education", subtitle = "From ESGData_SDG_ASIA dataset", y="Sanitationservices_Pop",x="Gross_SchoolEnrollment", caption = "ESG Demographics")
+
+ggplotly(c)
+
+
+
+#=========================================PLOT ALL YEAR SCATTER PLOT Q1=============================================================
+
+
+
+install_github('plotly/dashR')
+packageVersion("plotly")
+
+library(devtools)
+library(dash)
+library(dashCoreComponents)
+library(dashHtmlComponents)
+
+
+app <- Dash$new()
+
+
+countries <- unique(ESGDATA_SDG_ASIA_New$Country)
+
+Agriculture_Poverty_2017 <- with(ESGDATA_SDG_ASIA_New,
+                                 lapply(countries,
+                                        function(cont) {
+                                          list(
+                                            x = Agriculture_GDP[Country == cont],
+                                            y = Poverty_Population[Country == cont],
+                                            opacity=0.7,
+                                            text = Country[Country == cont],
+                                            mode = 'markers',
+                                            name = cont,
+                                            marker = list(size = 10,
+                                                          line = list(width = 0.5, color = 'white'))
+                                          )
+                                        }
+                                 )
+)
+years <- ESGDATA_SDG_ASIA_New$Year
+
+app$layout(htmlDiv(list(
+  
+  dccGraph( id = 'graph-with-slider',
+            figure = list(data =  Agriculture_Poverty_2017,layout = list(xaxis = list('type' = 'linear', 'title' = 'Agriculture GDP'),
+                                                                         yaxis = list('title' = 'Poverty Population'), margin = list('l' = 40, 'b' = 40, 't' = 10, 'r' = 10),legend = list('x' = 1, 'y' = 0),hovermode = 'closest'),
+                          
+                          dccSlider(
+                            id = 'year-slider',
+                            min = 0,
+                            max = length(years) + 1,
+                            marks = years,
+                            value = 0
+                          ))))))
+
+
+app$run_server()
+#============================================ PLOT ALL YEAR SCATTER Q2==============================================
+NRD_CO2_2017 <- with(ESGDATA_SDG_ASIA_New,
+                     lapply(countries,
+                            function(cont) {
+                              list(
+                                x = Naturalresources_depletion[Country == cont],
+                                y = CO2emissions_capita[Country == cont],
+                                opacity=0.7,
+                                text = Country[Country == cont],
+                                mode = 'markers',
+                                name = cont,
+                                marker = list(size = 10,
+                                              line = list(width = 0.5, color = 'white'))
+                              )
+                            }
+                     )
+)
+years <- ESGDATA_SDG_ASIA_New$Year
+
+app$layout(htmlDiv(list(
+  
+  dccGraph( id = 'graph-with-slider',
+            figure = list(data =  NRD_CO2_2017,layout = list(xaxis = list('type' = 'linear', 'title' = 'Natural Resources Depletion (GNI)'),
+                                                             yaxis = list('title' = 'CO2 emission metric ton per capita '), margin = list('l' = 40, 'b' = 40, 't' = 10, 'r' = 10),legend = list('x' = 1, 'y' = 0),hovermode = 'closest'),
+                          
+                          dccSlider(
+                            id = 'year-slider',
+                            min = 0,
+                            max = length(years) + 1,
+                            marks = years,
+                            value = 0
+                          ))))))
+
+
+app$run_server()
+#================================================== PLOT ALL YEAR SCATTER Q3==========================
+sanitation_GSE_2017 <- with(ESGDATA_SDG_ASIA_New,
+                            lapply(countries,
+                                   function(cont) {
+                                     list(
+                                       x = Gross_SchoolEnrollment[Country == cont],
+                                       y = Sanitationservices_Pop[Country == cont],
+                                       opacity=0.7,
+                                       text = Country[Country == cont],
+                                       mode = 'markers',
+                                       name = cont,
+                                       marker = list(size = 10,
+                                                     line = list(width = 0.5, color = 'white'))
+                                     )
+                                   }
+                            )
+)
+years <- ESGDATA_SDG_ASIA_New$Year()
+
+app$layout(htmlDiv(list(
+  
+  dccGraph( id = 'graph-with-slider',
+            figure = list(data =  sanitation_GSE_2017,layout = list(xaxis = list('type' = 'linear', 'title' = 'Gross School Enrollment Ratio'),
+                                                                    yaxis = list('title' = 'Sanitation Services (Population) '), margin = list('l' = 40, 'b' = 40, 't' = 10, 'r' = 10),legend = list('x' = 1, 'y' = 0),hovermode = 'closest'),
+                          
+                          dccSlider(
+                            id = 'year-slider',
+                            min = 0,
+                            max = length(years) + 1,
+                            marks = years,
+                            value = 0
+                          ))))))
+
+
+app$run_server()
